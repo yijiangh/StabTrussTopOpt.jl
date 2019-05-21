@@ -7,6 +7,7 @@ module StabTrussTopOpt
 using JSON
 using Makie
 using LinearAlgebra
+using SparseArrays
 
 # export TOProblemPar
 
