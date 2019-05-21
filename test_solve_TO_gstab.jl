@@ -1,6 +1,9 @@
 using StabTrussTopOpt
 sto = StabTrussTopOpt
 using Makie
+using Test
+
+# function example_relaxed_stab_opt()
 
 file_dir = joinpath(pwd(), "test", "instances")
 mesh_file = "tim.json"
@@ -19,9 +22,13 @@ sto.draw_load!(init_sc, par.X, par.F)
 init_sc
 
 # define TO problem
-to_problem = TO_define(to_problem_par)
+to_problem = sto.TO_define(par)
 
 # sto.TO_solve_relaxed_stab(to_problem)
 
 # draw solution
 # draw(problem)
+
+# end
+
+# example_relaxed_stab_opt()

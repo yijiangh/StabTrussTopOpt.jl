@@ -13,8 +13,8 @@ function parse_TO_problem(ground_fp, load_supp_fp)::sto.TOProblemPar
     dof_map = zeros(Int, m, 2*ndim) # e_id -> nodal dof
     id_minus = collect(ndim-1:-1:0)
     for i=1:m
-        dof_map[i, 1:ndim] = ones(ndim*T(i,1)) - id_minus
-        dof_map[i, ndim+1:2*ndim] = ones(ndim*T(i,2)) - id_minus
+        dof_map[i, 1:ndim] = ndim*T[i,1] * ones(ndim) - id_minus
+        dof_map[i, ndim+1:2*ndim] = ndim*T[i,2] * ones(ndim) - id_minus
     end
 
     return sto.TOProblemPar(ndim, n, m, X, T, B, F, Bound, dof_map)
