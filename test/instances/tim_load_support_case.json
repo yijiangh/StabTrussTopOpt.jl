@@ -9,7 +9,7 @@
   "point_load_list": [
     {
       "node_id": 19,
-      "force": [-10, 0]
+      "force": [-1e3, 0]
     }
   ],
   "support_node_list": [

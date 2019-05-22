@@ -1,6 +1,8 @@
 using StabTrussTopOpt
 sto = StabTrussTopOpt
 using JuMP, SCS
+using MosekTools
+const MOI = JuMP.MathOptInterface
 
 function TO_solve_relaxed_stab(pb::sto.TOProblem)
     # here we solve the following relaxed layout opt problem w/ global stability:
@@ -24,17 +26,19 @@ function TO_solve_relaxed_stab(pb::sto.TOProblem)
 
     # vector & spmat data
     L = pb.l
+    f = pb.f # ∈ nfree x 1
     Γ = pb.Γ # ∈ m x nfree
 
     # sparse matrices array indexed by element id
     eK = pb.eK
     Δ = pb.Δ
 
-    model = JuMP.Model(with_optimizer(SCS.Optimizer, verbose = 1))
+    # model = JuMP.Model(with_optimizer(SCS.Optimizer, verbose = 0))
+    model = JuMP.Model(with_optimizer(Mosek.Optimizer, QUIET=true))
     @variable(model, a[1:m] >= 0)
     @variable(model, q[1:m])
 
-    @constraint(model, Γ'*q == f)
+    @constraint(model, Γ'*q .== f)
 
     K = spzeros(nfree, nfree)
     for i=1:m
@@ -42,15 +46,23 @@ function TO_solve_relaxed_stab(pb::sto.TOProblem)
     end
     G = spzeros(nfree, nfree)
     for i=1:m
-        G += q[i]/L[i] * reshape(Δ[:,i], nfree, nfree)
+        G += (q[i]/L[i]) * Δ[i]
     end
-    @SDconstraint(model, K + τ * G >= 0)
+    # @SDconstraint(model, K + τ * G >= 0)
+    @SDconstraint(model, Symmetric(K + τ * G) >= 0)
 
-    @constraint(model, - σ_c * a - q <= 0)
-    @constraint(model, - σ_t * a + q <= 0)
+    @constraint(model, - σ_c * a - q .<= 0)
+    @constraint(model, - σ_t * a + q .<= 0)
 
     @objective(model, Min, dot(pb.c, a))
 
     JuMP.optimize!(model)
     @show JuMP.objective_value(model)
+    @show opt_a = JuMP.value.(a)
+    @show opt_q = JuMP.value.(q)
+
+    @show JuMP.termination_status(model) == MOI.OPTIMAL
+    @show JuMP.primal_status(model) == MOI.FEASIBLE_POINT
+
+    return opt_a
 end

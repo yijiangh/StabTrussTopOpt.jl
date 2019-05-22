@@ -32,8 +32,8 @@ mutable struct TOProblem
     f::Vector{Float64} # nfree x 1 vector, external force mapped in free dof indices
 
     Γ::SparseMatrixCSC{Float64, Int} # m x nfree sp compatability matrix
-    Δ::SparseMatrixCSC{Float64, Int} # sp(nfree^2 x m), Δ_i for geometric stiffness matrix, just a compact way to transport m x sp(nfree, nfree) array
-
+    
+    Δ::Array{SparseMatrixCSC{Float64, Int}, 1} # m x sp(nfree x nfree) array, Δ_i for geometric stiffness matrix
     eK::Array{SparseMatrixCSC{Float64, Int}, 1} # m x sp(nfree x nfree), K_i for element stiffness matrix in full dof index form
 
     x_init::Vector{Float64} # init x value

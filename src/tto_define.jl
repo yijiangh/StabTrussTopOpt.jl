@@ -1,7 +1,7 @@
 using StabTrussTopOpt
 sto = StabTrussTopOpt
 
-function TO_define(par::sto.TOProblemPar; E::Float64=1.0, τ::Float64=1.0, σ_c = 10.0, σ_t = 10.0)::sto.TOProblem
+function TO_define(par::sto.TOProblemPar; E::Number=1.0, τ::Number=1.0, σ_c::Number = 10.0, σ_t::Number = 10.0)::sto.TOProblem
 
     ndim = par.ndim
     n = par.n
@@ -74,10 +74,9 @@ function TO_define(par::sto.TOProblemPar; E::Float64=1.0, τ::Float64=1.0, σ_c 
     spBn = sparse(spBn_I, spBn_J, spBn_V, m, ndof)
 
     # construct Δ_i = (δ_i * δ_i^T + η_i * η_i^T), i ∈ [m]
-    spDelta = spzeros(nfree^2, m)
+    eDelta = Array{SparseMatrixCSC{Float64, Int}, 1}(undef, m)
     for i=1:m
-        DDD = spBn[i, mask_free] * spBn[i, mask_free]'
-        spDelta[:, i] = DDD[:]
+       eDelta[i] = spBn[i, mask_free] * spBn[i, mask_free]'
     end
 
     a_init = 10 * ones(Float64, m)
@@ -85,5 +84,5 @@ function TO_define(par::sto.TOProblemPar; E::Float64=1.0, τ::Float64=1.0, σ_c 
     q_init = 10 * ones(Float64, m)
     x_init  = vcat(a_init, q_init)
 
-    return sto.TOProblem(m, c, τ, E, σ_c, σ_t, l, ff, Γ, spDelta, eK, x_init)
+    return sto.TOProblem(m, c, τ, E, σ_c, σ_t, l, ff, Γ, eDelta, eK, x_init)
 end
