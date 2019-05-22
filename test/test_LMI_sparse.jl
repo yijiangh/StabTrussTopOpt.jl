@@ -31,7 +31,7 @@ model = JuMP.Model(with_optimizer(Mosek.Optimizer, QUIET=false))
 # formulate LMI constraint A0 + A1 x[1] + A2 x[2] in PSDCone
 # works
 K = A0 + sum(B[k] .* x[k] for k in 1:m)
-# @SDconstraint(model, con1,  Symmetric(K) >= 0);
+@SDconstraint(model, con1,  Symmetric(K) >= 0);
 # @constraint(model, con1,  Symmetric(K) in JuMP.PSDCone());
 
 # throws error
@@ -44,6 +44,6 @@ JuMP.optimize!(model)
 @show JuMP.termination_status(model) == MOI.OPTIMAL
 @show JuMP.primal_status(model) == MOI.FEASIBLE_POINT
 
-obj_x = JuMP.value.(x)
-L = A0 + sum(B[k] .* obj_x[k] for k in 1:m)
+L = JuMP.value.(K)
+# L = A0 + sum(B[k] .* obj_x[k] for k in 1:m)
 @show isposdef(L)

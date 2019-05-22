@@ -1,8 +1,9 @@
 using StabTrussTopOpt
 sto = StabTrussTopOpt
-using JuMP, SCS
+using JuMP
 using MosekTools
 const MOI = JuMP.MathOptInterface
+using Arpack
 
 function TO_solve_relaxed_stab(pb::sto.TOProblem)
     # here we solve the following relaxed layout opt problem w/ global stability:
@@ -64,5 +65,19 @@ function TO_solve_relaxed_stab(pb::sto.TOProblem)
     @show JuMP.termination_status(model) == MOI.OPTIMAL
     @show JuMP.primal_status(model) == MOI.FEASIBLE_POINT
 
-    return opt_a
+    # check eigen value
+    opt_K = JuMP.value.(K)
+    opt_G = JuMP.value.(G)
+    λ_min, _ = Arpack.eigs(opt_K, opt_G, which=:SM, nev=1)
+    @show λ_min
+
+    # check violation on elastic compatibility
+    # solve: min_{u} || opt_K_local * u - opt_q ||^2
+    opt_hk = [opt_a[i]*E/L[i] for i=1:m]
+    opt_K_local = spdiagm(0 => opt_hk) * Γ
+    opt_u = (opt_K_local' * opt_K_local) \ (opt_K_local' * opt_q)
+    @show res_elastic_compat = norm(opt_K_local * opt_u - opt_q)^2
+
+    opt_a = abs.(opt_a)
+    return opt_a, opt_q
 end

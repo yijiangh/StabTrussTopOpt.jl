@@ -1,6 +1,6 @@
 using Makie
 
-function draw_truss!(scene, X::Matrix{Float64}, T::Matrix{Int}, S::Matrix{Int}; area=undef, line_width::Float64=1.0, draw_supp::Bool=true, supp_scale::Float64=0.1, color=:black, xaxis_label::String="x", plot_limits=undef)
+function draw_truss!(scene, X::Matrix{Float64}, T::Matrix{Int}, S::Matrix{Int}; area=undef, stress=undef, line_width::Float64=1.0, draw_supp::Bool=true, supp_scale::Float64=0.1, xaxis_label::String="x", plot_limits=undef)
     if area != undef
         @assert(size(T, 1) == length(area))
         a = reshape([area area]', 2*length(area))
@@ -9,6 +9,20 @@ function draw_truss!(scene, X::Matrix{Float64}, T::Matrix{Int}, S::Matrix{Int}; 
     else
         a = ones(2*size(T,1))
         a .*= line_width
+    end
+    if stress != undef
+        # stress color
+        q_color = Array{RGBAf0, 1}(undef, length(stress))
+        for i=1:length(stress)
+            if stress[i] < 0
+                q_color[i] = RGBAf0(0,0,1,0.8)
+            else
+                q_color[i] = RGBAf0(1,0,0,0.8)
+            end
+        end
+        color = reshape([q_color q_color]', 2*length(stress))
+    else
+        color = :black
     end
 
     # seg_ids = reshape([T[:,1] T[:,2]], length(T[:,1])+length(T[:,2]))
